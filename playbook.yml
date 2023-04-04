@@ -209,6 +209,7 @@
           - virtinst
           - libvirt-clients
           - bridge-utils
+          - virt-manager
         state: present
     
     - name: Install and start the service
