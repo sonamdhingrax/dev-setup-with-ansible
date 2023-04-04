@@ -98,6 +98,12 @@
       group:
         name: docker
 
+    - name: adding existing user sonam to group docker
+      user:
+        name: 'sonam'
+        groups: docker
+        append: yes            
+
     # - name: Allow the user docker to run Docker commands
     #   shell:
     #     command: sudo usermod -aG docker sonam
@@ -211,13 +217,13 @@
         enabled: true
         state: started
 
-    - name: adding existing user sonam to group sudo
+    - name: adding existing user sonam to group kvm
       user:
         name: 'sonam'
         groups: kvm
         append: yes
 
-    - name: adding existing user sonam to group sudo
+    - name: adding existing user sonam to group libvirt
       user:
         name: 'sonam'
         groups: libvirt
