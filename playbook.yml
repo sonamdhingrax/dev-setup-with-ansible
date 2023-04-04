@@ -1,0 +1,224 @@
+---
+- name: Install Google Chrome on Ubuntu
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Add Google Chrome apt key
+      apt_key:
+        url: https://dl.google.com/linux/linux_signing_key.pub
+        state: present
+
+    - name: Add Google Chrome apt repository
+      apt_repository:
+        repo: deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
+        state: present
+
+    - name: Install Google Chrome
+      apt:
+        name: google-chrome-stable
+        state: present
+
+- name: Install APT based packages on Ubuntu
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install OpenSSH-server
+      apt:
+        name: openssh-server
+        state: present
+
+    - name: Install NFS-common
+      apt:
+        name: nfs-common
+        state: present
+
+    - name: Install Zsh
+      apt:
+        name: zsh
+        state: present
+
+    - name: Install curl
+      apt:
+        name: curl
+        state: present
+
+    - name: Install Zsh
+      apt:
+        name: wget
+        state: present
+
+    - name: Install git
+      apt:
+        name: git
+        state: present
+
+    - name: Install fonts-powerline
+      apt:
+        name: fonts-powerline
+        state: present
+
+- name: Install Docker on Ubuntu
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install prerequisite packages
+      apt:
+        name: 
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: Install Docker Compose
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Create a group for Docker
+      group:
+        name: docker
+
+    # - name: Allow the user docker to run Docker commands
+    #   shell:
+    #     command: sudo usermod -aG docker sonam
+
+    # - name: reload permissions
+    #   shell:
+    #     command: newgrp docker
+    
+- name: Install Sublime Text and PyCharm, Slack on Ubuntu
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Install Sublime Text GPG key
+      apt_key:
+        url: https://download.sublimetext.com/sublimehq-pub.gpg
+        state: present
+
+    - name: Add Sublime Text APT repository
+      apt_repository:
+        repo: deb https://download.sublimetext.com/ apt/stable/
+        state: present
+
+    - name: Install Sublime Text
+      apt:
+        name: sublime-text
+        state: present
+
+    - name: Install PyCharm Community Edition
+      snap:
+        name: pycharm-community
+        classic: yes
+        state: present
+    
+    - name: Install Slack 
+      snap:
+        name: slack
+        state: present
+
+    - name: Install Telegram
+      snap:
+        name: telegram-desktop
+        state: present
+
+- name: Install Visual Studio Code on Ubuntu
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Install VS Code GPG key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add VS Code APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
+        state: present
+
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+
+    - name: Install Visual Studio Code
+      apt:
+        name: code
+        state: present
+
+- name: Install Terraform
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Install Hashicorp GPG Key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+    
+    - name: Add HashiCorp repository
+      apt_repository:
+        repo: deb [arch=amd64] https://apt.releases.hashicorp.com focal main
+        state: present
+
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+
+    - name: Install Terraform
+      apt:
+        name: terraform
+        state: present        
+
+- name: Install KVM and related packages
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Install multiple kvm related packages
+      apt:
+        pkg:
+          - qemu-kvm
+          - libvirt-daemon-system
+          - virtinst
+          - libvirt-clients
+          - bridge-utils
+        state: present
+    
+    - name: Install and start the service
+      ansible.builtin.service:
+        name: libvirtd
+        enabled: true
+        state: started
+
+    - name: adding existing user sonam to group sudo
+      user:
+        name: 'sonam'
+        groups: kvm
+        append: yes
+
+    - name: adding existing user sonam to group sudo
+      user:
+        name: 'sonam'
+        groups: libvirt
+        append: yes        
