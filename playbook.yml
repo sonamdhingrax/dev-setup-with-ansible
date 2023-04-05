@@ -64,11 +64,6 @@
         name: python3-pip
         state: present
 
-    - name: Install ansible-lint
-      apt:
-        name: ansible-lint
-        state: present
-
 - name: Install Docker on Ubuntu
   hosts: all
   become: true
@@ -113,14 +108,6 @@
         name: 'sonam'
         groups: docker
         append: yes            
-
-    # - name: Allow the user docker to run Docker commands
-    #   shell:
-    #     command: sudo usermod -aG docker sonam
-
-    # - name: reload permissions
-    #   shell:
-    #     command: newgrp docker
     
 - name: Install Sublime Text and PyCharm, Slack on Ubuntu
   hosts: localhost
