@@ -148,6 +148,12 @@
         name: telegram-desktop
         state: present
 
+    - name: Install VLC Community Edition
+      snap:
+        name: vlc
+        classic: no
+        state: present        
+
 - name: Install Visual Studio Code on Ubuntu
   hosts: localhost
   become: true
