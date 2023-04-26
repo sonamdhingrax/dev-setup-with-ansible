@@ -69,6 +69,11 @@
         name: ffmpeg
         state: present        
 
+    - name: Install unzip
+      apt:
+        name: unzip
+        state: present
+
 - name: Install Docker on Ubuntu
   hosts: all
   become: true
@@ -147,16 +152,28 @@
         name: slack
         state: present
 
-    - name: Install Telegram
-      snap:
-        name: telegram-desktop
-        state: present
+- name: Install AWS CLI
+  hosts: localhost
+  become: true
 
-    - name: Install VLC Community Edition
-      snap:
-        name: vlc
-        classic: no
-        state: present        
+  tasks:
+    - name: Download AWS CLI package
+      ansible.builtin.get_url: 
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+
+    - name: Unzip the package
+      unarchive: src=/tmp/awscliv2.zip dest=/tmp copy=no creates=/tmp/aws
+
+    - name: Check if aws exists
+      stat:
+        path: /usr/bin/aws
+      register: aws_file   
+
+    - name: Install awscli package.
+      shell: /tmp/aws/install -i /usr/local/aws-cli -b /usr/bin/aws --update    
+      become: true   
+      when: not aws_file.stat.exists
 
 - name: Install Visual Studio Code on Ubuntu
   hosts: localhost
@@ -322,7 +339,7 @@
       shell: kubectl version --client
       register: client
       failed_when: client.rc > 1
-      
+
 - name: Install Zoom
   hosts: localhost
   become: true
