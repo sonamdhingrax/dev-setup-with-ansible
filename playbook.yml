@@ -72,6 +72,8 @@
 - name: Install Docker on Ubuntu
   hosts: all
   become: true
+  vars_files:
+    - external_vars.yaml  
 
   tasks:
     - name: Install prerequisite packages
@@ -108,9 +110,9 @@
       group:
         name: docker
 
-    - name: adding existing user sonam to group docker
+    - name: adding existing user to group docker
       user:
-        name: 'sonam'
+        name: '{{user_name}}'
         groups: docker
         append: yes            
     
@@ -207,6 +209,8 @@
 - name: Install KVM and related packages
   hosts: localhost
   become: true
+  vars_files:
+    - external_vars.yaml  
 
   tasks:
     - name: Install multiple kvm related packages
@@ -226,15 +230,15 @@
         enabled: true
         state: started
 
-    - name: adding existing user sonam to group kvm
+    - name: adding existing user to group kvm
       user:
-        name: 'sonam'
+        name: '{{user_name}}'
         groups: kvm
         append: yes
 
-    - name: adding existing user sonam to group libvirt
+    - name: adding existing user to group libvirt
       user:
-        name: 'sonam'
+        name: '{{user_name}}'
         groups: libvirt
         append: yes        
 
@@ -253,6 +257,77 @@
     - name: update foo.txt owner group mode
       file:
         path: /usr/local/bin/terragrunt
-        owner: sonam
-        group: sonam
+        owner: '{{user_name}}'
+        group: '{{user_name}}'
         mode: "0755"
+
+- name: Install Oh-my-zsh
+  hosts: localhost
+  become: false
+  vars_files:
+    - external_vars.yaml
+  vars_prompt:
+    - name: "default shell to zsh"
+      prompt: "Do you want to change your default shell to zsh? [Y/n]"
+      private: no
+
+  tasks:
+
+    - name: Check if .zshrc exists
+      stat:
+        path: /home/{{user_name}}/.zshrc
+      register: zshrc_file
+
+    - name: Download and install oh-my-zsh
+      ansible.builtin.shell: sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+      when: not zshrc_file.stat.exists
+
+    - name: Check if .zshrc exists
+      stat:
+        path: /home/{{user_name}}/.zshrc
+      register: zshrc_file      
+
+    - name: Replace old the theme robbyrussell with agnoster
+      ansible.builtin.replace:
+        path: /home/{{user_name}}/.zshrc
+        regexp: 'robbyrussell'
+        replace: 'agnoster'
+      when: zshrc_file.stat.exists 
+
+    - name: Check if zsh-autosuggestions exists
+      stat:
+        path: /home/{{user_name}}/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+      register: autosuggestions_dir
+
+    - name: Add zsh-auto-suggestions 
+      ansible.builtin.shell: git clone https://github.com/zsh-users/zsh-autosuggestions.git /home/{{user_name}}/.oh-my-zsh/custom/plugins/zsh-autosuggestions 
+      when: not autosuggestions_dir.stat.exists
+
+    - name: Check if zsh-autosuggestions exists
+      stat:
+        path: /home/{{user_name}}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+      register: syntax_highlighting_dir
+
+    - name: Add zsh-syntax-highlighting
+      ansible.builtin.shell: git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /home/{{user_name}}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+      when: not syntax_highlighting_dir.stat.exists
+
+    - name: Add plugins in zshrc_file
+      ansible.builtin.replace:
+        path: /home/{{user_name}}/.zshrc
+        regexp: '\(git\)'
+        replace: '(git zsh-autosuggestions zsh-syntax-highlighting)'
+      when: zshrc_file.stat.exists 
+
+- name: Cleanup
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Remove useless packages from the cache
+      ansible.builtin.apt:
+        autoclean: yes
+
+    - name: Remove dependencies that are no longer required
+      ansible.builtin.apt:
+        autoremove: yes
