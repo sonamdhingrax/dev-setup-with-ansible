@@ -322,6 +322,18 @@
       shell: kubectl version --client
       register: client
       failed_when: client.rc > 1
+      
+- name: Install Zoom
+  hosts: localhost
+  become: true
+  vars_files:
+    - external_vars.yaml    
+
+  tasks:
+    - name: Install zoom deb
+      apt:
+        deb: '{{zoom_link}}'
+        state: present           
 
 - name: Install Oh-my-zsh
   hosts: localhost
