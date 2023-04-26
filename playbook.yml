@@ -303,6 +303,11 @@
         fail_msg: "{{ result.stdout }}"
         success_msg: "{{ result.stdout }}"
 
+    - name: Check if kubectl exists
+      stat:
+        path: /usr/local/bin/kubectl
+      register: kubectl_file              
+
     - name: Move kubectl and change permissions
       file:
         src: "/tmp/kubectl"
@@ -311,6 +316,7 @@
         owner: root
         group: root
         mode: "+x"
+      when: not kubectl_file.stat.exists
 
     - name: Check if kubectl is installed
       shell: kubectl version --client
