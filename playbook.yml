@@ -241,11 +241,13 @@
 - name: Install Terragrunt
   hosts: localhost
   become: true
+  vars_files:
+    - external_vars.yaml
 
   tasks:
     - name: Download and install Terragrunt
       ansible.builtin.get_url:
-        url: https://github.com/gruntwork-io/terragrunt/releases/download/v0.45.4/terragrunt_linux_amd64
+        url: https://github.com/gruntwork-io/terragrunt/releases/download/{{tg_version}}/terragrunt_linux_amd64
         dest: /usr/local/bin/terragrunt
 
     - name: update foo.txt owner group mode
