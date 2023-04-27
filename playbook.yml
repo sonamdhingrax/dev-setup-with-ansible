@@ -199,7 +199,7 @@
         name: code
         state: present
 
-- name: Install Terraform
+- name: Install Terraform and packer
   hosts: localhost
   become: true
 
@@ -208,10 +208,10 @@
       apt_key:
         url: https://apt.releases.hashicorp.com/gpg
         state: present
-    
+       
     - name: Add HashiCorp repository
       apt_repository:
-        repo: deb [arch=amd64] https://apt.releases.hashicorp.com focal main
+        repo: deb [arch=amd64] https://apt.releases.hashicorp.com {{ansible_lsb.codename}} main
         state: present
 
     - name: Update APT cache
@@ -222,6 +222,11 @@
       apt:
         name: terraform
         state: present        
+
+    - name: Install Packer
+      apt:
+        name: packer
+        state: present  
 
 - name: Install KVM and related packages
   hosts: localhost
