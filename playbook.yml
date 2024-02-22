@@ -233,11 +233,6 @@
         name: terraform
         state: present
 
-    - name: Install Packer
-      apt:
-        name: packer
-        state: present
-
 - name: Install KVM and related packages
   hosts: localhost
   become: true
