@@ -13,6 +13,7 @@
       apt_repository:
         repo: deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
         state: present
+        filename: google-chrome
 
     - name: Install Google Chrome
       apt:
@@ -67,7 +68,7 @@
     - name: Install ffmpeg
       apt:
         name: ffmpeg
-        state: present        
+        state: present
 
     - name: Install unzip
       apt:
@@ -78,12 +79,12 @@
   hosts: all
   become: true
   vars_files:
-    - external_vars.yaml  
+    - external_vars.yaml
 
   tasks:
     - name: Install prerequisite packages
       apt:
-        name: 
+        name:
           - apt-transport-https
           - ca-certificates
           - curl
@@ -100,6 +101,7 @@
       apt_repository:
         repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
         state: present
+        filename: docker-ce
 
     - name: Install Docker
       apt:
@@ -114,13 +116,14 @@
     - name: Create a group for Docker
       group:
         name: docker
+        state: present
 
-    - name: adding existing user to group docker
+    - name: Adding existing user to group docker
       user:
-        name: '{{user_name}}'
+        name: "{{ user_name }}"
         groups: docker
-        append: yes            
-    
+        append: yes
+
 - name: Install Sublime Text and PyCharm, Slack on Ubuntu
   hosts: localhost
   become: true
@@ -133,7 +136,7 @@
 
     - name: Add Sublime Text APT repository
       apt_repository:
-        repo: deb https://download.sublimetext.com/ apt/stable/
+        repo: deb https://download.sublimetext.com/apt/stable/
         state: present
 
     - name: Install Sublime Text
@@ -146,8 +149,8 @@
         name: pycharm-community
         classic: yes
         state: present
-    
-    - name: Install Slack 
+
+    - name: Install Slack
       snap:
         name: slack
         state: present
@@ -158,7 +161,7 @@
 
   tasks:
     - name: Download AWS CLI package
-      ansible.builtin.get_url: 
+      ansible.builtin.get_url:
         url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
         dest: /tmp/awscliv2.zip
 
@@ -168,11 +171,11 @@
     - name: Check if aws exists
       stat:
         path: /usr/bin/aws
-      register: aws_file   
+      register: aws_file
 
     - name: Install awscli package.
-      shell: /tmp/aws/install -i /usr/local/aws-cli -b /usr/bin/aws --update    
-      become: true   
+      shell: /tmp/aws/install -i /usr/local/aws-cli -b /usr/bin/aws --update
+      become: true
       when: not aws_file.stat.exists
 
 - name: Install Visual Studio Code on Ubuntu
@@ -208,7 +211,7 @@
       apt_key:
         url: https://apt.releases.hashicorp.com/gpg
         state: present
-       
+
     - name: Add HashiCorp repository
       apt_repository:
         repo: deb [arch=amd64] https://apt.releases.hashicorp.com {{ansible_lsb.codename}} main
@@ -221,18 +224,18 @@
     - name: Install Terraform
       apt:
         name: terraform
-        state: present        
+        state: present
 
     - name: Install Packer
       apt:
         name: packer
-        state: present  
+        state: present
 
 - name: Install KVM and related packages
   hosts: localhost
   become: true
   vars_files:
-    - external_vars.yaml  
+    - external_vars.yaml
 
   tasks:
     - name: Install multiple kvm related packages
@@ -245,7 +248,7 @@
           - bridge-utils
           - virt-manager
         state: present
-    
+
     - name: Install and start the service
       ansible.builtin.service:
         name: libvirtd
@@ -254,15 +257,15 @@
 
     - name: adding existing user to group kvm
       user:
-        name: '{{user_name}}'
+        name: "{{user_name}}"
         groups: kvm
         append: yes
 
     - name: adding existing user to group libvirt
       user:
-        name: '{{user_name}}'
+        name: "{{user_name}}"
         groups: libvirt
-        append: yes        
+        append: yes
 
 - name: Install Terragrunt
   hosts: localhost
@@ -279,15 +282,15 @@
     - name: update foo.txt owner group mode
       file:
         path: /usr/local/bin/terragrunt
-        owner: '{{user_name}}'
-        group: '{{user_name}}'
+        owner: "{{user_name}}"
+        group: "{{user_name}}"
         mode: "0755"
 
 - name: Install kubectl
   hosts: localhost
   become: true
   vars_files:
-    - external_vars.yaml    
+    - external_vars.yaml
 
   tasks:
     - name: Get latest kubectl version
@@ -328,7 +331,7 @@
     - name: Check if kubectl exists
       stat:
         path: /usr/local/bin/kubectl
-      register: kubectl_file              
+      register: kubectl_file
 
     - name: Move kubectl and change permissions
       file:
@@ -349,13 +352,13 @@
   hosts: localhost
   become: true
   vars_files:
-    - external_vars.yaml    
+    - external_vars.yaml
 
   tasks:
     - name: Install zoom deb
       apt:
-        deb: '{{zoom_link}}'
-        state: present           
+        deb: "{{zoom_link}}"
+        state: present
 
 - name: Install Oh-my-zsh
   hosts: localhost
@@ -368,7 +371,6 @@
       private: no
 
   tasks:
-
     - name: Check if .zshrc exists
       stat:
         path: /home/{{user_name}}/.zshrc
@@ -381,22 +383,22 @@
     - name: Check if .zshrc exists
       stat:
         path: /home/{{user_name}}/.zshrc
-      register: zshrc_file      
+      register: zshrc_file
 
     - name: Replace old the theme robbyrussell with agnoster
       ansible.builtin.replace:
         path: /home/{{user_name}}/.zshrc
-        regexp: 'robbyrussell'
-        replace: 'agnoster'
-      when: zshrc_file.stat.exists 
+        regexp: "robbyrussell"
+        replace: "agnoster"
+      when: zshrc_file.stat.exists
 
     - name: Check if zsh-autosuggestions exists
       stat:
         path: /home/{{user_name}}/.oh-my-zsh/custom/plugins/zsh-autosuggestions
       register: autosuggestions_dir
 
-    - name: Add zsh-auto-suggestions 
-      ansible.builtin.shell: git clone https://github.com/zsh-users/zsh-autosuggestions.git /home/{{user_name}}/.oh-my-zsh/custom/plugins/zsh-autosuggestions 
+    - name: Add zsh-auto-suggestions
+      ansible.builtin.shell: git clone https://github.com/zsh-users/zsh-autosuggestions.git /home/{{user_name}}/.oh-my-zsh/custom/plugins/zsh-autosuggestions
       when: not autosuggestions_dir.stat.exists
 
     - name: Check if zsh-autosuggestions exists
@@ -412,8 +414,8 @@
       ansible.builtin.replace:
         path: /home/{{user_name}}/.zshrc
         regexp: '\(git\)'
-        replace: '(git zsh-autosuggestions zsh-syntax-highlighting)'
-      when: zshrc_file.stat.exists 
+        replace: "(git zsh-autosuggestions zsh-syntax-highlighting)"
+      when: zshrc_file.stat.exists
 
 - name: Cleanup
   hosts: localhost
