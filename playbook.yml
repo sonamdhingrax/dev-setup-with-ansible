@@ -30,6 +30,11 @@
         name: openssh-server
         state: present
 
+    - name: Install Wake-on-LAN
+      apt:
+        name: wakeonlan
+        state: present
+
     - name: Install NFS-common
       apt:
         name: nfs-common
