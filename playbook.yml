@@ -199,7 +199,7 @@
 
     - name: Add VS Code APT repository
       apt_repository:
-        repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
+        repo: deb [arch=amd64] https://packages.microsoft.com/repos/code stable main
         state: present
 
     - name: Update APT cache
@@ -421,11 +421,11 @@
         replace: "(git zsh-autosuggestions zsh-syntax-highlighting)"
       when: zshrc_file.stat.exists
 
-- name: Install Go 1.21.5 on Ubuntu
+- name: Install Go 1.22.0 on Ubuntu
   hosts: all
   become: yes
   vars:
-    go_version: "1.21.5"
+    go_version: "1.22.0"
     go_os: "linux"
     go_arch: "amd64"
     go_root: "/usr/local"
