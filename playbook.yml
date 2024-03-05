@@ -183,10 +183,9 @@
       register: aws_file
 
     - name: Install awscli package.
-      shell: /tmp/aws/install -i /usr/local/bin/aws-cli -b /usr/local/bin/aws --update
+      shell: /tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin/ --update
       become: true
       when: not aws_file.stat.exists
-
 - name: Install Visual Studio Code on Ubuntu
   hosts: localhost
   become: true
