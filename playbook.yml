@@ -179,11 +179,11 @@
 
     - name: Check if aws exists
       stat:
-        path: /usr/bin/aws
+        path: /usr/local/bin/aws
       register: aws_file
 
     - name: Install awscli package.
-      shell: /tmp/aws/install -i /usr/local/aws-cli -b /usr/bin/aws --update
+      shell: /tmp/aws/install -i /usr/local/bin/aws-cli -b /usr/local/bin/aws --update
       become: true
       when: not aws_file.stat.exists
 
