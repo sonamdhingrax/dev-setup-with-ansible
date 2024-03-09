@@ -1,25 +1,3 @@
----
-- name: Install Google Chrome on Ubuntu
-  hosts: all
-  become: true
-
-  tasks:
-    - name: Add Google Chrome apt key
-      apt_key:
-        url: https://dl.google.com/linux/linux_signing_key.pub
-        state: present
-
-    - name: Add Google Chrome apt repository
-      apt_repository:
-        repo: deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main
-        state: present
-        filename: google-chrome
-
-    - name: Install Google Chrome
-      apt:
-        name: google-chrome-stable
-        state: present
-
 - name: Install APT based packages on Ubuntu
   hosts: all
   become: true
@@ -70,98 +48,9 @@
         name: python3-pip
         state: present
 
-    - name: Install ffmpeg
-      apt:
-        name: ffmpeg
-        state: present
-
     - name: Install unzip
       apt:
         name: unzip
-        state: present
-
-- name: Install Docker on Ubuntu
-  hosts: all
-  become: true
-  vars_files:
-    - external_vars.yaml
-
-  tasks:
-    - name: Install prerequisite packages
-      apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - curl
-          - gnupg
-          - lsb-release
-        state: present
-
-    - name: Add Docker GPG key
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-
-    - name: Add Docker repository
-      apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
-        state: present
-        filename: docker-ce
-
-    - name: Install Docker
-      apt:
-        name: docker-ce
-        state: present
-
-    - name: Install Docker Compose
-      apt:
-        name: docker-compose
-        state: present
-
-    - name: Create a group for Docker
-      group:
-        name: docker
-        state: present
-
-    - name: Adding existing user to group docker
-      user:
-        name: "{{ user_name }}"
-        groups: docker
-        append: yes
-
-- name: Install Sublime Text and PyCharm, Slack on Ubuntu
-  hosts: localhost
-  become: true
-
-  tasks:
-    - name: Add Sublime Text GPG key
-      apt_key:
-        url: https://download.sublimetext.com/sublimehq-pub.gpg
-        state: present
-
-    - name: Add Sublime Text APT repository
-      apt_repository:
-        repo: "deb https://download.sublimetext.com/ apt/stable/"
-        state: present
-
-    - name: Update apt package cache
-      apt:
-        update_cache: yes
-
-    - name: Install Sublime Text
-      apt:
-        name: sublime-text
-        state: present
-
-    - name: Install PyCharm Community Edition
-      snap:
-        name: pycharm-community
-        classic: yes
-        state: present
-
-    - name: Install Slack
-      snap:
-        name: slack
         state: present
 
 - name: Install AWS CLI
@@ -186,31 +75,8 @@
       shell: /tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin/ --update
       become: true
       when: not aws_file.stat.exists
-- name: Install Visual Studio Code on Ubuntu
-  hosts: localhost
-  become: true
 
-  tasks:
-    - name: Install VS Code GPG key
-      apt_key:
-        url: https://packages.microsoft.com/keys/microsoft.asc
-        state: present
-
-    - name: Add VS Code APT repository
-      apt_repository:
-        repo: deb [arch=amd64] https://packages.microsoft.com/repos/code stable main
-        state: present
-
-    - name: Update APT cache
-      apt:
-        update_cache: yes
-
-    - name: Install Visual Studio Code
-      apt:
-        name: code
-        state: present
-
-- name: Install Terraform and packer
+- name: Install Terraform
   hosts: localhost
   become: true
 
@@ -233,61 +99,6 @@
       apt:
         name: terraform
         state: present
-
-- name: Install KVM and related packages
-  hosts: localhost
-  become: true
-  vars_files:
-    - external_vars.yaml
-
-  tasks:
-    - name: Install multiple kvm related packages
-      apt:
-        pkg:
-          - qemu-kvm
-          - libvirt-daemon-system
-          - virtinst
-          - libvirt-clients
-          - bridge-utils
-          - virt-manager
-        state: present
-
-    - name: Install and start the service
-      ansible.builtin.service:
-        name: libvirtd
-        enabled: true
-        state: started
-
-    - name: adding existing user to group kvm
-      user:
-        name: "{{user_name}}"
-        groups: kvm
-        append: yes
-
-    - name: adding existing user to group libvirt
-      user:
-        name: "{{user_name}}"
-        groups: libvirt
-        append: yes
-
-- name: Install Terragrunt
-  hosts: localhost
-  become: true
-  vars_files:
-    - external_vars.yaml
-
-  tasks:
-    - name: Download and install Terragrunt
-      ansible.builtin.get_url:
-        url: https://github.com/gruntwork-io/terragrunt/releases/download/{{tg_version}}/terragrunt_linux_amd64
-        dest: /usr/local/bin/terragrunt
-
-    - name: update foo.txt owner group mode
-      file:
-        path: /usr/local/bin/terragrunt
-        owner: "{{user_name}}"
-        group: "{{user_name}}"
-        mode: "0755"
 
 - name: Install kubectl
   hosts: localhost
@@ -350,18 +161,6 @@
       shell: kubectl version --client
       register: client
       failed_when: client.rc > 1
-
-- name: Install Zoom
-  hosts: localhost
-  become: true
-  vars_files:
-    - external_vars.yaml
-
-  tasks:
-    - name: Install zoom deb
-      apt:
-        deb: "{{zoom_link}}"
-        state: present
 
 - name: Install Oh-my-zsh
   hosts: localhost
