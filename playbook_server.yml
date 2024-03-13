@@ -76,6 +76,46 @@
       become: true
       when: not aws_file.stat.exists
 
+- name: Install Golang
+  hosts: all
+  become: yes # Use sudo
+  vars:
+    golang_version: "1.22.0" # Specify the Go version you want to install
+    golang_download_url: "https://golang.org/dl/go{{ golang_version }}.linux-amd64.tar.gz"
+    golang_install_dir: "/usr/local"
+    goroot_dir: "{{ golang_install_dir }}/go"
+
+  tasks:
+    - name: Download Golang tarball
+      ansible.builtin.get_url:
+        url: "{{ golang_download_url }}"
+        dest: "/tmp/go{{ golang_version }}.linux-amd64.tar.gz"
+        timeout: 60
+        validate_certs: yes
+
+    - name: Extract Golang tarball
+      ansible.builtin.unarchive:
+        src: "/tmp/go{{ golang_version }}.linux-amd64.tar.gz"
+        dest: "{{ golang_install_dir }}"
+        remote_src: yes
+        creates: "{{ goroot_dir }}"
+
+    - name: Update zshrc for Go paths
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_user }}/.zshrc"
+        line: "{{ item }}"
+        create: yes
+      loop:
+        - "export GOROOT={{ goroot_dir }}"
+        - "export PATH=$PATH:{{ goroot_dir }}/bin"
+
+    - name: Apply .zshrc changes
+      ansible.builtin.shell: "source /home/{{ ansible_user }}/.zshrc"
+      args:
+        executable: /bin/zsh
+      become: no
+      become_user: "{{ ansible_user }}"
+
 - name: Install Terraform
   hosts: localhost
   become: true
