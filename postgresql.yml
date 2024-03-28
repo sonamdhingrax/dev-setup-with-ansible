@@ -89,6 +89,8 @@
         name: postgres
         password: "{{ postgres_password }}"
         encrypted: yes
+        become_user: postgres
+        become_method: su
 
   handlers:
     - name: Restart PostgreSQL
