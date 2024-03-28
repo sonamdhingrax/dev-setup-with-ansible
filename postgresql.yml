@@ -3,6 +3,7 @@
   become: yes
   vars:
     postgres_version: 16
+    postgres_password: "{{ lookup('env', 'POSTGRES_PASSWORD') }}"
 
   tasks:
     - name: Update PostgreSQL configuration parameters
@@ -77,6 +78,17 @@
         insertafter: "^# IPv4 local connections:"
       notify:
         - Restart PostgreSQL
+
+    - name: Check if PostgreSQL password environment variable is set
+      fail:
+        msg: "POSTGRES_PASSWORD environment variable is not set. Please set the environment variable."
+      when: postgres_password is not defined
+
+    - name: Set password for postgres user from environment variable
+      postgresql_user:
+        name: postgres
+        password: "{{ postgres_password }}"
+        encrypted: yes
 
   handlers:
     - name: Restart PostgreSQL
