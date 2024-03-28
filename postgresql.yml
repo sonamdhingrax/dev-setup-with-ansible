@@ -2,8 +2,8 @@
 - hosts: all
   become: yes
   vars:
-    postgres_version: 14
-  
+    postgres_version: 16
+
   tasks:
     - name: Update PostgreSQL configuration parameters
       lineinfile:
@@ -11,23 +11,70 @@
         regexp: "^{{ item.regexp }}"
         line: "{{ item.line }}"
       loop:
-        - { regexp: '^#?max_connections', line: 'max_connections = 100' }
-        - { regexp: '^#?shared_buffers', line: 'shared_buffers = 8GB' }
-        - { regexp: '^#?effective_cache_size', line: 'effective_cache_size = 24GB' }
-        - { regexp: '^#?maintenance_work_mem', line: 'maintenance_work_mem = 2GB' }
-        - { regexp: '^#?checkpoint_completion_target', line: 'checkpoint_completion_target = 0.9' }
-        - { regexp: '^#?wal_buffers', line: 'wal_buffers = 16MB' }
-        - { regexp: '^#?default_statistics_target', line: 'default_statistics_target = 500' }
-        - { regexp: '^#?random_page_cost', line: 'random_page_cost = 1.1' }
-        - { regexp: '^#?effective_io_concurrency', line: 'effective_io_concurrency = 200' }
-        - { regexp: '^#?work_mem', line: 'work_mem = 10485kB' }
-        - { regexp: '^#?huge_pages', line: 'huge_pages = try' }
-        - { regexp: '^#?min_wal_size', line: 'min_wal_size = 4GB' }
-        - { regexp: '^#?max_wal_size', line: 'max_wal_size = 16GB' }
-        - { regexp: '^#?max_worker_processes', line: 'max_worker_processes = 8' }
-        - { regexp: '^#?max_parallel_workers_per_gather', line: 'max_parallel_workers_per_gather = 4' }
-        - { regexp: '^#?max_parallel_workers', line: 'max_parallel_workers = 8' }
-        - { regexp: '^#?max_parallel_maintenance_workers', line: 'max_parallel_maintenance_workers = 4' }
+        - {
+            regexp: "^#?listen_addresses",
+            line: "listen_addresses = '*' # Listen on all interfaces",
+          }
+        - { regexp: "^#?max_connections", line: "max_connections = 100" }
+        - { regexp: "^#?shared_buffers", line: "shared_buffers = 8GB" }
+        - {
+            regexp: "^#?effective_cache_size",
+            line: "effective_cache_size = 24GB",
+          }
+        - {
+            regexp: "^#?maintenance_work_mem",
+            line: "maintenance_work_mem = 2GB",
+          }
+        - {
+            regexp: "^#?checkpoint_completion_target",
+            line: "checkpoint_completion_target = 0.9",
+          }
+        - { regexp: "^#?wal_buffers", line: "wal_buffers = 16MB" }
+        - {
+            regexp: "^#?default_statistics_target",
+            line: "default_statistics_target = 500",
+          }
+        - { regexp: "^#?random_page_cost", line: "random_page_cost = 1.1" }
+        - {
+            regexp: "^#?effective_io_concurrency",
+            line: "effective_io_concurrency = 200",
+          }
+        - { regexp: "^#?work_mem", line: "work_mem = 10485kB" }
+        - { regexp: "^#?huge_pages", line: "huge_pages = try" }
+        - { regexp: "^#?min_wal_size", line: "min_wal_size = 4GB" }
+        - { regexp: "^#?max_wal_size", line: "max_wal_size = 16GB" }
+        - {
+            regexp: "^#?max_worker_processes",
+            line: "max_worker_processes = 8",
+          }
+        - {
+            regexp: "^#?max_parallel_workers_per_gather",
+            line: "max_parallel_workers_per_gather = 4",
+          }
+        - {
+            regexp: "^#?max_parallel_workers",
+            line: "max_parallel_workers = 8",
+          }
+        - {
+            regexp: "^#?max_parallel_maintenance_workers",
+            line: "max_parallel_maintenance_workers = 4",
+          }
+      notify:
+        - Restart PostgreSQL
+
+    - name: Allow login from local LAN CIDR in pg_hba.conf
+      lineinfile:
+        path: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
+        line: "host    all             all             192.168.1.0/24            md5"
+        insertafter: EOF
+      notify:
+        - Restart PostgreSQL
+
+    - name: Allow password authentication in pg_hba.conf
+      lineinfile:
+        path: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
+        line: "host    all             all             192.168.1.0/24            md5"
+        insertafter: "^# IPv4 local connections:"
       notify:
         - Restart PostgreSQL
 
