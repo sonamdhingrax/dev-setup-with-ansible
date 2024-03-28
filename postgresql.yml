@@ -84,13 +84,8 @@
         msg: "POSTGRES_PASSWORD environment variable is not set. Please set the environment variable."
       when: postgres_password is not defined
 
-    - name: Set password for postgres user from environment variable
-      postgresql_user:
-        name: postgres
-        password: "{{ postgres_password }}"
-        encrypted: yes
-        become_user: postgres
-        become_method: su
+- name: Set password for the default PostgreSQL user
+  command: sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '{{ postgres_password }}';"
 
   handlers:
     - name: Restart PostgreSQL
