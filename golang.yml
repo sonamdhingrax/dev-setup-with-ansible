@@ -5,7 +5,7 @@
   vars:
     golang_version: "1.22.0" # Specify the Go version you want to install
     golang_download_url: "https://golang.org/dl/go{{ golang_version }}.linux-amd64.tar.gz"
-    golang_install_dir: "/usr/local/"
+    golang_install_dir: "/usr/local"
     # gopath_dir: "/home/{{ ansible_user }}/go"
     goroot_dir: "{{ golang_install_dir }}/go"
 
