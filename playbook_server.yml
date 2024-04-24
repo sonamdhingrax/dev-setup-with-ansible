@@ -100,67 +100,67 @@
         name: terraform
         state: present
 
-- name: Install kubectl
-  hosts: localhost
-  become: true
-  vars_files:
-    - external_vars.yaml
+# - name: Install kubectl
+#   hosts: localhost
+#   become: true
+#   vars_files:
+#     - external_vars.yaml
 
-  tasks:
-    - name: Get latest kubectl version
-      uri:
-        url: https://dl.k8s.io/release/stable.txt
-        return_content: yes
-      register: version
+#   tasks:
+#     - name: Get latest kubectl version
+#       uri:
+#         url: https://dl.k8s.io/release/stable.txt
+#         return_content: yes
+#       register: version
 
-    - name: Download the latest kubectl release
-      ansible.builtin.get_url:
-        url: https://dl.k8s.io/release/{{ version.content }}/bin/linux/amd64/kubectl
-        dest: /tmp/
-      register: kubectl
+#     - name: Download the latest kubectl release
+#       ansible.builtin.get_url:
+#         url: https://dl.k8s.io/release/{{ version.content }}/bin/linux/amd64/kubectl
+#         dest: /tmp/
+#       register: kubectl
 
-    - name: Delete existing checksum file if exists
-      file:
-        path: "/tmp/kubectl.sha256"
-        state: absent
+#     - name: Delete existing checksum file if exists
+#       file:
+#         path: "/tmp/kubectl.sha256"
+#         state: absent
 
-    - name: Download the kubectl checksum file
-      ansible.builtin.get_url:
-        url: https://dl.k8s.io/{{ version.content }}/bin/linux/amd64/kubectl.sha256
-        dest: /tmp/
+#     - name: Download the kubectl checksum file
+#       ansible.builtin.get_url:
+#         url: https://dl.k8s.io/{{ version.content }}/bin/linux/amd64/kubectl.sha256
+#         dest: /tmp/
 
-    - name: Validate the kubectl binary against the checksum file
-      shell: echo "$(cat /tmp/kubectl.sha256)  /tmp/kubectl" | sha256sum --check
-      register: result
+#     - name: Validate the kubectl binary against the checksum file
+#       shell: echo "$(cat /tmp/kubectl.sha256)  /tmp/kubectl" | sha256sum --check
+#       register: result
 
-    - name: Assert that the kubectl binary is OK
-      vars:
-        expected: "/tmp/kubectl: OK"
-      assert:
-        that:
-          - result.stdout == expected
-        fail_msg: "{{ result.stdout }}"
-        success_msg: "{{ result.stdout }}"
+#     - name: Assert that the kubectl binary is OK
+#       vars:
+#         expected: "/tmp/kubectl: OK"
+#       assert:
+#         that:
+#           - result.stdout == expected
+#         fail_msg: "{{ result.stdout }}"
+#         success_msg: "{{ result.stdout }}"
 
-    - name: Check if kubectl exists
-      stat:
-        path: /usr/local/bin/kubectl
-      register: kubectl_file
+#     - name: Check if kubectl exists
+#       stat:
+#         path: /usr/local/bin/kubectl
+#       register: kubectl_file
 
-    - name: Move kubectl and change permissions
-      file:
-        src: "/tmp/kubectl"
-        dest: /usr/local/bin/kubectl
-        state: hard
-        owner: root
-        group: root
-        mode: "+x"
-      when: not kubectl_file.stat.exists
+#     - name: Move kubectl and change permissions
+#       file:
+#         src: "/tmp/kubectl"
+#         dest: /usr/local/bin/kubectl
+#         state: hard
+#         owner: root
+#         group: root
+#         mode: "+x"
+#       when: not kubectl_file.stat.exists
 
-    - name: Check if kubectl is installed
-      shell: kubectl version --client
-      register: client
-      failed_when: client.rc > 1
+#     - name: Check if kubectl is installed
+#       shell: kubectl version --client
+#       register: client
+#       failed_when: client.rc > 1
 
 - name: Install Oh-my-zsh
   hosts: localhost
