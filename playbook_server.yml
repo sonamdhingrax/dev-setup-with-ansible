@@ -53,6 +53,11 @@
         name: unzip
         state: present
 
+    - name: Install ethtool for Wake-on-LAN
+      apt:
+        name: ethtool
+        state: present
+
 - name: Install AWS CLI
   hosts: localhost
   become: true
@@ -307,3 +312,49 @@
         name: "{{ user_name }}"
         groups: docker
         append: yes
+# --- ADDED PLAY ---
+- name: Configure Wake-on-LAN
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Find the lowest-numbered ethernet interface
+      ansible.builtin.shell:
+        # This command:
+        # 1. Gets all interfaces from `ip a`
+        # 2. Filters for ethernet (eth) or predictable (enp) names
+        # 3. Sorts numerically by interface index
+        # 4. Takes the first one (lowest index)
+        # 5. Extracts just the name (e.g., "enp3s0")
+        cmd: "ip a | grep -E '^[0-9]+: (eth|enp)' | sort -n | head -n 1 | awk '{print $2}' | sed 's/://'"
+      register: ethernet_interface
+      changed_when: false
+      check_mode: no # Ensures this runs even in check mode to find the interface
+
+    - name: Create systemd service for persistent WOL
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/wol.service
+        content: |
+          [Unit]
+          Description=Enable Wake-on-LAN for {{ ethernet_interface.stdout }}
+          After=network.target
+
+          [Service]
+          Type=oneshot
+          ExecStart=/sbin/ethtool -s {{ ethernet_interface.stdout }} wol g
+
+          [Install]
+          WantedBy=multi-user.target
+        owner: root
+        group: root
+        mode: "0644"
+      when: ethernet_interface.stdout | length > 0 # Only run if an interface was found
+      notify: Enable and start WOL service
+
+  handlers:
+    - name: Enable and start WOL service
+      ansible.builtin.systemd:
+        name: wol.service
+        enabled: yes
+        state: started
+        daemon_reload: yes
