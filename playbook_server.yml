@@ -318,15 +318,13 @@
   become: true
 
   tasks:
-    - name: Find the lowest-numbered ethernet interface
+    - name: Find an active ethernet interface
       ansible.builtin.shell:
         # This command:
-        # 1. Gets all interfaces from `ip a`
-        # 2. Filters for ethernet (eth) or predictable (enp) names
-        # 3. Sorts numerically by interface index
-        # 4. Takes the first one (lowest index)
-        # 5. Extracts just the name (e.g., "enp3s0")
-        cmd: "ip a | grep -E '^[0-9]+: (eth|enp)' | sort -n | head -n 1 | awk '{print $2}' | sed 's/://'"
+        # 1. Gets all link-level interface information in a single line format
+        # 2. Filters for an interface that is in the 'UP' state and is an ethernet interface (eth or enp)
+        # 3. Prints the interface name and exits
+        cmd: "ip -o link | awk -F': ' '/state UP/ && $2 ~ /^(eth|enp)/ {print $2; exit}'"
       register: ethernet_interface
       changed_when: false
       check_mode: no # Ensures this runs even in check mode to find the interface
