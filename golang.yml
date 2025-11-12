@@ -33,9 +33,25 @@
         - "export GOROOT={{ goroot_dir }}"
         - "export PATH=$PATH:{{ goroot_dir }}/bin"
 
+    - name: Update bashrc for Go paths
+      ansible.builtin.lineinfile:
+        path: "/home/{{ ansible_user }}/.bashrc"
+        line: "{{ item }}"
+        create: yes
+      loop:
+        - "export GOROOT={{ goroot_dir }}"
+        - "export PATH=$PATH:{{ goroot_dir }}/bin"
+
     - name: Apply .zshrc changes
       ansible.builtin.shell: "source /home/{{ ansible_user }}/.zshrc"
       args:
         executable: /bin/zsh
+      become: no
+      become_user: "{{ ansible_user }}"
+
+    - name: Apply .bashrc changes
+      ansible.builtin.shell: "source /home/{{ ansible_user }}/.bashrc"
+      args:
+        executable: /bin/bash
       become: no
       become_user: "{{ ansible_user }}"
