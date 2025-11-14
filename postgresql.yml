@@ -66,7 +66,7 @@
     - name: Allow login from local LAN CIDR in pg_hba.conf
       lineinfile:
         path: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
-        line: "host    all             all             192.168.1.0/24            md5"
+        line: "host    all             all             192.168.0.0/16            md5"
         insertafter: EOF
       notify:
         - Restart PostgreSQL
@@ -90,7 +90,7 @@
     - name: Allow password authentication in pg_hba.conf
       lineinfile:
         path: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
-        line: "host    all             all             192.168.1.0/24            md5"
+        line: "host    all             all             192.168.0.0/16            md5"
         insertafter: "^# IPv4 local connections:"
       notify:
         - Restart PostgreSQL
