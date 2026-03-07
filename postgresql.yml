@@ -6,6 +6,29 @@
     postgres_password: "{{ lookup('env', 'POSTGRES_PASSWORD') }}"
 
   tasks:
+    - name: Install PostgreSQL and extensions
+      apt:
+        name:
+          - "postgresql-{{ postgres_version }}"
+          - "postgresql-{{ postgres_version }}-pgvector"
+          - "postgresql-{{ postgres_version }}-partman"
+        state: present
+
+    - name: Ensure libicu (pg_search dependency) is installed
+      apt:
+        name: libicu74
+        state: present
+
+    - name: Download pg_search .deb package
+      get_url:
+        url: "https://github.com/paradedb/paradedb/releases/download/v0.20.5/postgresql-{{ postgres_version }}-pg-search_0.20.5-1PARADEDB-noble_amd64.deb"
+        dest: "/tmp/pg_search.deb"
+
+    - name: Install pg_search from local .deb
+      apt:
+        deb: "/tmp/pg_search.deb"
+        state: present
+
     - name: Update PostgreSQL configuration parameters
       lineinfile:
         path: "/etc/postgresql/{{ postgres_version }}/main/postgresql.conf"
@@ -20,11 +43,11 @@
         - { regexp: "^#?shared_buffers", line: "shared_buffers = 8GB" }
         - {
             regexp: "^#?effective_cache_size",
-            line: "effective_cache_size = 24GB",
+            line: "effective_cache_size = 12GB",
           }
         - {
             regexp: "^#?maintenance_work_mem",
-            line: "maintenance_work_mem = 2GB",
+            line: "maintenance_work_mem = 1GB",
           }
         - {
             regexp: "^#?checkpoint_completion_target",
@@ -42,23 +65,27 @@
           }
         - { regexp: "^#?work_mem", line: "work_mem = 10485kB" }
         - { regexp: "^#?huge_pages", line: "huge_pages = try" }
-        - { regexp: "^#?min_wal_size", line: "min_wal_size = 4GB" }
-        - { regexp: "^#?max_wal_size", line: "max_wal_size = 16GB" }
+        - { regexp: "^#?min_wal_size", line: "min_wal_size = 1GB" }
+        - { regexp: "^#?max_wal_size", line: "max_wal_size = 4GB" }
         - {
             regexp: "^#?max_worker_processes",
-            line: "max_worker_processes = 8",
+            line: "max_worker_processes = 4",
           }
         - {
             regexp: "^#?max_parallel_workers_per_gather",
-            line: "max_parallel_workers_per_gather = 4",
+            line: "max_parallel_workers_per_gather = 2",
           }
         - {
             regexp: "^#?max_parallel_workers",
-            line: "max_parallel_workers = 8",
+            line: "max_parallel_workers = 4",
           }
         - {
             regexp: "^#?max_parallel_maintenance_workers",
-            line: "max_parallel_maintenance_workers = 4",
+            line: "max_parallel_maintenance_workers = 2",
+          }
+        - {
+            regexp: "^#?shared_preload_libraries",
+            line: "shared_preload_libraries = 'pg_search,pg_partman_bgw'",
           }
       notify:
         - Restart PostgreSQL
