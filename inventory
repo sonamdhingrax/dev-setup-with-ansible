@@ -1,2 +1,2 @@
-localhost ansible_connection=local ansible_user=sonam
+localhost ansible_connection=local ansible_user=sonam ansible_become_exe=/usr/bin/sudo.ws
 
